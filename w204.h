@@ -40,7 +40,5 @@
 
 void w204_send_8_bit( uint8_t );
 
-uint8_t* w204_read_8_bit( uint8_t, uint8_t* );
-
 #endif /* W204_H_ */
 
