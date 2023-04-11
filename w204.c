@@ -52,12 +52,12 @@ void w204_init( uint8_t cs ) {
     spi_device = spi_create_device( cs, cs, cs );
      
     w204_send_8_bit( FUNCTION_SET_EUROPEAN ); // has to be sent first!
-    w204_send_8_bit( DISPLAY_OFF );
-    w204_send_8_bit( CURSOR_DIR_LEFT_NO_SHIFT );
-    w204_send_8_bit( CHARACTER_MODE_INTERNAL_PWR );
-    w204_send_8_bit( CLEAR_DISPLAY ); 
-    w204_send_8_bit( RETURN_HOME );
-    w204_send_8_bit( DISPLAY_ON | CURSOR_ON | BLINK_ON );
+//     w204_send_8_bit( DISPLAY_OFF );
+//     w204_send_8_bit( CURSOR_DIR_LEFT_NO_SHIFT );
+//     w204_send_8_bit( CHARACTER_MODE_INTERNAL_PWR );
+//     w204_send_8_bit( CLEAR_DISPLAY ); 
+//     w204_send_8_bit( RETURN_HOME );
+//     w204_send_8_bit( DISPLAY_ON | CURSOR_ON | BLINK_ON );
 }
 
 static void _w204_check_busy ( void ) {
@@ -90,10 +90,10 @@ static void _w204_check_busy ( void ) {
         
         uart_put( "%i, %i", container[0], container[1] );
         
-        if ( ( container[0] & ( 1 << 5 ) ) {
-            BUSY = 1;
+        if ( container[0] & ( 1 << 5 ) ) {
+            BUSY = 0; // 1
         } else {
-            BUSY = 0;
+            BUSY = 0; // 0
         }
     }
     

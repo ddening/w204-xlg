@@ -37,7 +37,7 @@
 #define READ_BUSY_FLAG 0x01 // RS RW := 0 1
 
 /* Function prototypes */
-
+void w204_init( uint8_t cs );
 void w204_send_8_bit( uint8_t );
 
 #endif /* W204_H_ */
