@@ -17,6 +17,7 @@ static void _w204_read_fake_10_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_read_8_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_check_busy ( void );
 static void _w204_check_fake_busy ( void );
+static void _w204_hello_word( void );
 
 // Callback functions
 volatile uint8_t READING;
@@ -24,22 +25,10 @@ void callback_read_finished( void ) {
     READING = 0;
 }
 
-/* 
-   We have to create fake packets to create the desired 10 bit format, since we can only
-   8 bit with each packet.
-   
-   Design concept:
-   - Packet D00 and D01 contain only 0's as a pre-stream of bits.
-   - D02 and D03 contain the 2 bit opcode + 8 bit data
-   - D02 contains the 2 bit opcode in the first two bits
-   - D03 contains the instruction and doesn't need to be modified
-   - Final dataword/payload always has the length of 4
-   
-   .xx.xxxxxxxx.xx.xxxxxxxx.xx.xxxxxxxx.xx.xxxxxxxx.xx.xxxxxxxx.xx.
-   .00000000.00000000.00000000.00000000.00000000.00000000.00000000.
-   .  D00   .  D01   .  D02   .  D03   .  D04   .	D05 .   D06 
-
-*/
+static uint8_t character_h = 0x48 ; // 0b01001000
+static uint8_t character_e = 0x65 ; // 0b01100101
+static uint8_t character_l = 0x6C ; // 0b01101100
+static uint8_t character_o = 0x6F ; // 0b01101111
 
 void w204_init( uint8_t cs ) {
     
@@ -58,6 +47,19 @@ void w204_init( uint8_t cs ) {
     w204_send_8_bit( RSRW00, CLEAR_DISPLAY ); 
     w204_send_8_bit( RSRW00, RETURN_HOME );
     w204_send_8_bit( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );
+    
+    _w204_hello_word();
+}
+
+static void _w204_hello_word( void ) {
+    
+    // SET DDRAM/CGRAM ADDRESS := RSRW00
+    // WRITE DATA INTO DDRAM := RSRW10 
+    w204_send_8_bit( RSRW10, character_h );
+    w204_send_8_bit( RSRW10, character_e );
+    w204_send_8_bit( RSRW10, character_l );
+    w204_send_8_bit( RSRW10, character_l );
+    w204_send_8_bit( RSRW10, character_o );
 }
 
 /* 
