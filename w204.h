@@ -7,6 +7,12 @@
 #define LINE3	LINE1 + 0x14
 #define	LINE4 	LINE2 + 0x14
 
+/* OPCODE */
+#define RSRW00 0x00
+#define RSRW01 0x01
+#define RSRW10 0x02
+#define RSRW11 0x03
+
 /* DISPLAY CONTROL */
 #define DISPLAY_OFF     0x08    
 #define DISPLAY_ON      0x0C 
@@ -38,7 +44,7 @@
 
 /* Function prototypes */
 void w204_init( uint8_t cs );
-void w204_send_8_bit( uint8_t );
+void w204_send_8_bit( uint8_t, uint8_t );
 
 #endif /* W204_H_ */
 

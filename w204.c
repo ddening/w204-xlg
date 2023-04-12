@@ -12,9 +12,9 @@
 
 static device_t* spi_device;
 
-static void _w204_send_fake_10_bit( uint8_t );
-static void _w204_read_fake_10_bit( uint8_t, uint8_t* );
-static void _w204_read_8_bit( uint8_t, uint8_t* );
+static void _w204_send_fake_10_bit( uint8_t, uint8_t );
+static void _w204_read_fake_10_bit( uint8_t, uint8_t, uint8_t* );
+static void _w204_read_8_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_check_busy ( void );
 static void _w204_check_fake_busy ( void );
 
@@ -51,15 +51,24 @@ void w204_init( uint8_t cs ) {
     
     spi_device = spi_create_device( cs, cs, cs );
      
-    w204_send_8_bit( FUNCTION_SET_EUROPEAN ); // has to be sent first!
-//     w204_send_8_bit( DISPLAY_OFF );
-//     w204_send_8_bit( CURSOR_DIR_LEFT_NO_SHIFT );
-//     w204_send_8_bit( CHARACTER_MODE_INTERNAL_PWR );
-//     w204_send_8_bit( CLEAR_DISPLAY ); 
-//     w204_send_8_bit( RETURN_HOME );
-//     w204_send_8_bit( DISPLAY_ON | CURSOR_ON | BLINK_ON );
+    w204_send_8_bit( RSRW00, FUNCTION_SET_EUROPEAN ); // has to be sent first!
+    w204_send_8_bit( RSRW00, DISPLAY_OFF );
+    w204_send_8_bit( RSRW00, CURSOR_DIR_LEFT_NO_SHIFT );
+    w204_send_8_bit( RSRW00, CHARACTER_MODE_INTERNAL_PWR );
+    w204_send_8_bit( RSRW00, CLEAR_DISPLAY ); 
+    w204_send_8_bit( RSRW00, RETURN_HOME );
+    w204_send_8_bit( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );
 }
 
+/* 
+Check BUSY FLAG (BF) RESPONSE  
+If the response equals 1 the process is still active and
+we have to do another read request.
+       
+Response format (10 bit): 0 1 | BF AC AC AC AC AC AC AC
+ -> First 8 bit looks like this: 0 1 BF AC AC AC AC AC
+ -> We have to check the third bit from the left
+*/
 static void _w204_check_busy ( void ) {
     
     uint8_t BUSY = 1;
@@ -74,26 +83,16 @@ static void _w204_check_busy ( void ) {
         
         READING = 1;
     
-        _w204_read_8_bit( READ_BUSY_FLAG, container );
+        _w204_read_8_bit( RSRW01, READ_BUSY_FLAG, container );
     
         while ( READING );
-    
-        /* 
-          Check BUSY FLAG (BF) RESPONSE  
-          If the response equals 1 the process is still active and
-          we have to do another read request.
-       
-          Response format (10 bit): 0 1 | BF AC AC AC AC AC AC AC
-          -> First 8 bit looks like this for us: 0 1 BF AC AC AC AC AC
-          -> We have to check the third bit from the left
-        */
-        
+           
         uart_put( "%i, %i", container[0], container[1] );
         
         if ( container[0] & ( 1 << 5 ) ) {
-            BUSY = 0; // 1
+            BUSY = 1;
         } else {
-            BUSY = 0; // 0
+            BUSY = 0;
         }
     }
     
@@ -104,7 +103,7 @@ static void _w204_check_fake_busy ( void ) {
     _delay_ms(50); // Fake Busy Response
 }
 
-static void _w204_read_fake_10_bit( uint8_t dataword, uint8_t* container ) {
+static void _w204_read_fake_10_bit( uint8_t opcode, uint8_t instruction, uint8_t* container ) {
     
     spi_error_t err;
     
@@ -117,8 +116,8 @@ static void _w204_read_fake_10_bit( uint8_t dataword, uint8_t* container ) {
     
     _data_write[0] = 0x00;
     _data_write[1] = 0x00;
-    _data_write[2] = 0x01; // Setting manually [RS, R/W] = [0, 1]
-    _data_write[3] = dataword;
+    _data_write[2] = opcode;
+    _data_write[3] = instruction;
     
     _data_read[0] = 0x00;
     _data_read[1] = 0x00;
@@ -133,11 +132,11 @@ static void _w204_read_fake_10_bit( uint8_t dataword, uint8_t* container ) {
     err = spi_read_write( payload1, payload2, container );
 }
 
-void _w204_read_8_bit( uint8_t dataword, uint8_t* container) {
-    _w204_read_fake_10_bit( dataword, container ); 
+void _w204_read_8_bit( uint8_t opcode, uint8_t instruction, uint8_t* container ) {
+    _w204_read_fake_10_bit( opcode, instruction, container ); 
 }
 
-static void _w204_send_fake_10_bit( uint8_t dataword ) {
+static void _w204_send_fake_10_bit( uint8_t opcode, uint8_t instruction ) {
     
     spi_error_t err;
     
@@ -149,8 +148,8 @@ static void _w204_send_fake_10_bit( uint8_t dataword ) {
     
     _data[0] = 0x00;
     _data[1] = 0x00;
-    _data[2] = 0x00; // Setting manually [RS, R/W] = [0, 0]
-    _data[3] = dataword;
+    _data[2] = opcode;
+    _data[3] = instruction;
     
     payload_t* payload = payload_create_spi( PRIORITY_NORMAL, spi_device, _data, 4, NULL );
     
@@ -161,7 +160,7 @@ static void _w204_send_fake_10_bit( uint8_t dataword ) {
     err = spi_write( payload );
 }
 
-void w204_send_8_bit( uint8_t dataword ) {    
+void w204_send_8_bit( uint8_t opcode, uint8_t instruction ) {    
    _w204_check_busy();
-   _w204_send_fake_10_bit( dataword );
+   _w204_send_fake_10_bit( opcode, instruction );
 }
