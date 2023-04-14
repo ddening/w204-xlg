@@ -38,10 +38,6 @@
 #define GRAPHIC_MODE_NO_INTERNAL_PWR   0x1B 
 #define GRAPHIC_MODE_INTERNAL_PWR      0x1F 
 
-/* READS BUSY FLAG ; READS ADDRESS COUNTER CONTENTS 
-   DON'T USE WITH NORMAL WRITE FUNCTION */
-#define READ_BUSY_FLAG 0x01 // RS RW := 0 1
-
 /* Function prototypes */
 void w204_init( uint8_t cs );
 void w204_send_8_bit( uint8_t, uint8_t );

@@ -1,8 +1,5 @@
-#include <avr/io.h>
-#include <avr/wdt.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -19,7 +16,7 @@ static void _w204_check_busy ( void );
 static void _w204_check_fake_busy ( void );
 static void _w204_hello_word( void );
 
-// Callback functions
+// Callback Functions
 volatile uint8_t READING;
 void callback_read_finished( void ) {
     READING = 0;
@@ -54,7 +51,7 @@ void w204_init( uint8_t cs ) {
 static void _w204_hello_word( void ) {
     
     // SET DDRAM/CGRAM ADDRESS := RSRW00
-    // WRITE DATA INTO DDRAM := RSRW10 
+    // WRITE DATA INTO DDRAM   := RSRW10 
     w204_send_8_bit( RSRW10, character_h );
     w204_send_8_bit( RSRW10, character_e );
     w204_send_8_bit( RSRW10, character_l );
@@ -62,11 +59,8 @@ static void _w204_hello_word( void ) {
     w204_send_8_bit( RSRW10, character_o );
 }
 
-/* 
-Check BUSY FLAG (BF) RESPONSE  
-If the response equals 1 the process is still active and
-we have to do another read request.
-       
+/* Check BUSY FLAG (BF) RESPONSE  
+If the response equals 1 the process is still active and we have to do another read request.      
 Response format (10 bit): 0 1 | BF AC AC AC AC AC AC AC
  -> First 8 bit looks like this: 0 1 BF AC AC AC AC AC
  -> We have to check the third bit from the left
@@ -85,7 +79,7 @@ static void _w204_check_busy ( void ) {
         
         READING = 1;
     
-        _w204_read_8_bit( RSRW01, READ_BUSY_FLAG, container );
+        _w204_read_8_bit( RSRW01, 0x00, container );
     
         while ( READING );
            
@@ -109,22 +103,20 @@ static void _w204_read_fake_10_bit( uint8_t opcode, uint8_t instruction, uint8_t
     
     spi_error_t err;
     
-    uint8_t* _data_write = (uint8_t*) malloc( sizeof( uint8_t ) * 4 );
+    uint8_t* _data_write = (uint8_t*) malloc( sizeof( uint8_t ) * 2 );
     uint8_t* _data_read  = (uint8_t*) malloc( sizeof( uint8_t ) * 2 );
     
     if ( _data_write == NULL || _data_read == NULL ) {
         return;
     }
     
-    _data_write[0] = 0x00;
-    _data_write[1] = 0x00;
-    _data_write[2] = opcode;
-    _data_write[3] = instruction;
+    _data_write[0] = ( opcode | ( instruction >> 2 ) );
+    _data_write[1] = ( instruction << 6 );
     
     _data_read[0] = 0x00;
     _data_read[1] = 0x00;
     
-    payload_t* payload1 = payload_create_spi( PRIORITY_NORMAL, spi_device, _data_write, 4, NULL );
+    payload_t* payload1 = payload_create_spi( PRIORITY_NORMAL, spi_device, _data_write, 2, NULL );
     payload_t* payload2 = payload_create_spi( PRIORITY_NORMAL, spi_device, _data_read , 2, callback_read_finished );
     
     if ( payload1 == NULL || payload2 == NULL ) {
@@ -142,18 +134,16 @@ static void _w204_send_fake_10_bit( uint8_t opcode, uint8_t instruction ) {
     
     spi_error_t err;
     
-    uint8_t* _data = (uint8_t*) malloc( sizeof( uint8_t ) * 4 );
+    uint8_t* _data = (uint8_t*) malloc( sizeof( uint8_t ) * 2 );
     
     if ( _data == NULL ) {
         return;
     }
+   
+    _data[0] = ( opcode | ( instruction >> 2 ) );
+    _data[1] = ( instruction << 6 );
     
-    _data[0] = 0x00;
-    _data[1] = 0x00;
-    _data[2] = opcode;
-    _data[3] = instruction;
-    
-    payload_t* payload = payload_create_spi( PRIORITY_NORMAL, spi_device, _data, 4, NULL );
+    payload_t* payload = payload_create_spi( PRIORITY_NORMAL, spi_device, _data, 2, NULL );
     
     if ( payload == NULL ) {
         return;
