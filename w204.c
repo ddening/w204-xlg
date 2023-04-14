@@ -1,7 +1,8 @@
-#include <avr/interrupt.h>
-#include <util/delay.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
 
 #include "w204.h"
 #include "spi.h"
@@ -16,6 +17,7 @@ static void _w204_read_fake_10_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_read_8_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_check_busy ( void );
 static void _w204_check_fake_busy ( void );
+static void _w204_putc( uint8_t c );
 static void _w204_hello_word( void );
 
 // Callback Functions
@@ -46,8 +48,9 @@ void w204_init( uint8_t cs ) {
     w204_send_8_bit_instruction( RSRW00, CLEAR_DISPLAY ); 
     w204_send_8_bit_instruction( RSRW00, RETURN_HOME );
     w204_send_8_bit_instruction( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );
-    
-    _w204_hello_word();
+      
+    // _w204_hello_word();
+    w204_puts("Hello World");
 }
 
 static void _w204_hello_word( void ) {   
@@ -56,10 +59,6 @@ static void _w204_hello_word( void ) {
     w204_send_8_bit_data( RSRW10, char_l );
     w204_send_8_bit_data( RSRW10, char_l );
     w204_send_8_bit_data( RSRW10, char_o );
-}
-
-void w204_move_cursor( uint8_t line, uint8_t offset ) {
-    w204_send_8_bit_instruction( RSRW00, DDRAM_ADDR + line + offset );
 }
 /* Check BUSY FLAG (BF) RESPONSE  
 If the response equals 1 the process is still active and we have to do another read request.      
@@ -81,7 +80,7 @@ static void _w204_check_busy ( void ) {
         
         READING = 1;
     
-        _w204_read_8_bit( RSRW01, 0x00, container );
+        _w204_read_8_bit( RSRW01, 0x80, container );
     
         while ( READING );
            
@@ -144,10 +143,10 @@ static void _w204_send_fake_10_bit_instruction( uint8_t opcode, uint8_t instruct
     if ( data == NULL ) {
         return;
     }
-   
+        
     data[0] = ( ( opcode << 6) | ( instruction >> 2 ) );
     data[1] = ( instruction << 6 );
-    
+        
     payload_t* payload = payload_create_spi( PRIORITY_NORMAL, spi_device, data, 2, NULL );
     
     if ( payload == NULL ) {
@@ -227,4 +226,19 @@ void w204_send_8_bit_data( uint8_t opcode, uint8_t data ) {
 void w204_send_8_bit_data_n( uint8_t opcode, uint8_t data1, uint8_t data2 ) {
     _w204_check_fake_busy();
     _w204_send_fake_10_bit_data( opcode, data1, data2 );
+}
+
+static void _w204_putc( uint8_t c ) {
+    _w204_check_fake_busy();
+    _w204_send_fake_10_bit_instruction( RSRW10, c );
+}
+
+void w204_puts( char* string ) {
+    while( *string ) {
+        _w204_putc( *string++ );
+    }
+}
+
+void w204_move_cursor( uint8_t line, uint8_t offset ) {
+    w204_send_8_bit_instruction( RSRW00, DDRAM_ADDR + line + offset );
 }

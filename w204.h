@@ -39,13 +39,13 @@
 #define GRAPHIC_MODE_NO_INTERNAL_PWR   0x1B 
 #define GRAPHIC_MODE_INTERNAL_PWR      0x1F 
 
-/* Function prototypes */
+/* Function Prototypes */
 void w204_init( uint8_t );
-void w204_move_cursor( uint8_t, uint8_t );
-
 void w204_send_8_bit_instruction( uint8_t, uint8_t );
 void w204_send_8_bit_instructions( uint8_t, uint8_t, uint8_t, uint8_t );
 void w204_send_8_bit_data( uint8_t, uint8_t );
-void w204_send_8_bit_data_n( uint8_t, uint8_t, uint8_t ) ;
+void w204_send_8_bit_data_n( uint8_t, uint8_t, uint8_t );
+void w204_puts( char* string );
+void w204_move_cursor( uint8_t, uint8_t );
 
 #endif /* W204_H_ */
