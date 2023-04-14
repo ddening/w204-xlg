@@ -2,10 +2,11 @@
 #define W204_H_
 
 /* HD44780 */
-#define LINE1	0
-#define LINE2	LINE1 + 0x40
-#define LINE3	LINE1 + 0x14
-#define	LINE4 	LINE2 + 0x14
+#define LINE1	0x00
+#define LINE2	LINE3 + 0x20
+#define LINE3	LINE1 + 0x20
+#define	LINE4 	LINE2 + 0x20
+#define DDRAM_ADDR 0x80
 
 /* OPCODE */
 #define RSRW00 0x00
@@ -39,8 +40,12 @@
 #define GRAPHIC_MODE_INTERNAL_PWR      0x1F 
 
 /* Function prototypes */
-void w204_init( uint8_t cs );
-void w204_send_8_bit( uint8_t, uint8_t );
+void w204_init( uint8_t );
+void w204_move_cursor( uint8_t, uint8_t );
+
+void w204_send_8_bit_instruction( uint8_t, uint8_t );
+void w204_send_8_bit_instructions( uint8_t, uint8_t, uint8_t, uint8_t );
+void w204_send_8_bit_data( uint8_t, uint8_t );
+void w204_send_8_bit_data_n( uint8_t, uint8_t, uint8_t ) ;
 
 #endif /* W204_H_ */
-
