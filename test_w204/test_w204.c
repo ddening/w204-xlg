@@ -28,4 +28,6 @@ void main( void ) {
         w204_init( SPI_TEST_PORT );
           	
     	while (1) { /* Busy-wait forever. */ }
+            
+        return 0;
 }
