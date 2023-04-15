@@ -45,6 +45,8 @@ void w204_init( uint8_t cs ) {
       
     // _w204_hello_word();
     w204_puts("Hello World");
+    w204_move_cursor(LINE2, 0);
+    w204_puts("Hello AVR");
 }
 
 static void _w204_hello_word( void ) {   
