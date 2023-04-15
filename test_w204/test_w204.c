@@ -20,18 +20,17 @@
 #endif
 
 int main( void ) {
-       	
-        cli();
-        
-    	led_init();
-    	
-    	uart_init();
-    	
-        uart_put( "start w204 suite" );
-        
-        switch_init();
-        
-        w204_init( SPI_TEST_PORT );
-          	
-    	while (1) { /* Busy-wait forever. */ }
+    
+    cli(); 
+         
+    led_init();
+    uart_init();
+    switch_init();
+    spi_init( &spi_config );  
+     
+    sei();
+    
+    w204_init( SPI_TEST_PORT );
+   
+   while (1) { /* Busy-wait forever. */ }
 }

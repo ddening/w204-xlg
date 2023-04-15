@@ -32,13 +32,7 @@ static uint8_t char_l = 0x6C ; // 0b01101100
 static uint8_t char_o = 0x6F ; // 0b01101111
 
 void w204_init( uint8_t cs ) {
-    
-    cli();
-    
-    spi_init( &spi_config );
-    
-    sei();
-    
+       
     spi_device = spi_create_device( cs, cs, cs );
      
     w204_send_8_bit_instruction( RSRW00, FUNCTION_SET_EUROPEAN ); // has to be sent first!
@@ -245,22 +239,18 @@ void w204_move_cursor( uint8_t line, uint8_t offset ) {
 }
 
 void w204_shift_cursor_left( void ) {   
-    uart_put("CURSOR LEFT");
     w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_CURSOR_LEFT );
 }
 
 void w204_shift_cursor_right( void ) {
-    uart_put("CURSOR RIGHT");
     w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_CURSOR_RIGHT );
 }
 
 void w204_shift_display_left( void ) {
-    uart_put("DISPLAY LEFT");
     w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_DISPLAY_LEFT );
 }
 
 void w204_shift_display_right( void ) {
-    uart_put("DISPLAY RIGHT");
     w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_DISPLAY_RIGHT);
 }
 
