@@ -60,6 +60,7 @@ static void _w204_hello_word( void ) {
     w204_send_8_bit_data( RSRW10, char_l );
     w204_send_8_bit_data( RSRW10, char_o );
 }
+
 /* Check BUSY FLAG (BF) RESPONSE  
 If the response equals 1 the process is still active and we have to do another read request.      
 Response format (10 bit): 0 1 | BF AC AC AC AC AC AC AC
@@ -241,4 +242,28 @@ void w204_puts( char* string ) {
 
 void w204_move_cursor( uint8_t line, uint8_t offset ) {
     w204_send_8_bit_instruction( RSRW00, DDRAM_ADDR + line + offset );
+}
+
+void w204_shift_cursor_left( void ) {   
+    uart_put("CURSOR LEFT");
+    w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_CURSOR_LEFT );
+}
+
+void w204_shift_cursor_right( void ) {
+    uart_put("CURSOR RIGHT");
+    w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_CURSOR_RIGHT );
+}
+
+void w204_shift_display_left( void ) {
+    uart_put("DISPLAY LEFT");
+    w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_DISPLAY_LEFT );
+}
+
+void w204_shift_display_right( void ) {
+    uart_put("DISPLAY RIGHT");
+    w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_DISPLAY_RIGHT);
+}
+
+void w204_clear( void ) {
+    w204_send_8_bit_instruction( RSRW00, CLEAR_DISPLAY );
 }

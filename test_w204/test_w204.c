@@ -8,26 +8,30 @@
 
 #include "test_w204.h"
 #include "suite.h"
+#include "w204.h"
 #include "spi.h"
 #include "uart.h"
 #include "led_lib.h"
+#include "switches.h"
 
 /* Define CPU frequency in Hz here if not defined in Makefile */
 #ifndef F_CPU
 #define F_CPU 10000000UL
 #endif
 
-void main( void ) {
+int main( void ) {
        	
+        cli();
+        
     	led_init();
     	
     	uart_init();
     	
-        uart_put( "Start W204 Suite" );
+        uart_put( "start w204 suite" );
+        
+        switch_init();
         
         w204_init( SPI_TEST_PORT );
           	
     	while (1) { /* Busy-wait forever. */ }
-            
-        return 0;
 }

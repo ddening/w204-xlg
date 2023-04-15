@@ -19,7 +19,6 @@
 #define DISPLAY_ON      0x0C 
 #define CURSOR_ON       0x0A    // 0b00001010 -> sets display off
 #define BLINK_ON        0x09    // 0b00001001 -> sets display off
-
 #define CLEAR_DISPLAY   0x01
 #define RETURN_HOME     0x02
 
@@ -39,6 +38,13 @@
 #define GRAPHIC_MODE_NO_INTERNAL_PWR   0x1B 
 #define GRAPHIC_MODE_INTERNAL_PWR      0x1F 
 
+/* Moves cursor and shifts display without changing DDRAM contents */
+#define SHIFT_INSTRUCTION   0x10
+#define SHIFT_CURSOR_LEFT   0x00
+#define SHIFT_CURSOR_RIGHT  0x04
+#define SHIFT_DISPLAY_LEFT  0x08
+#define SHIFT_DISPLAY_RIGHT 0x0C
+
 /* Function Prototypes */
 void w204_init( uint8_t );
 void w204_send_8_bit_instruction( uint8_t, uint8_t );
@@ -47,5 +53,10 @@ void w204_send_8_bit_data( uint8_t, uint8_t );
 void w204_send_8_bit_data_n( uint8_t, uint8_t, uint8_t );
 void w204_puts( char* string );
 void w204_move_cursor( uint8_t, uint8_t );
+void w204_shift_cursor_left( void );
+void w204_shift_cursor_right( void );
+void w204_shift_display_left( void );
+void w204_shift_display_right( void );
+void w204_clear( void );
 
 #endif /* W204_H_ */
