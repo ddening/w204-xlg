@@ -31,6 +31,9 @@ static uint8_t char_e = 0x65 ; // 0b01100101
 static uint8_t char_l = 0x6C ; // 0b01101100
 static uint8_t char_o = 0x6F ; // 0b01101111
 
+static uint8_t CURRENT_STREAM_LINE = 0x00;
+static stream_out_t stream_out;
+
 void w204_init( uint8_t cs ) {
        
     spi_device = spi_create_device( cs, cs, cs );
@@ -47,6 +50,14 @@ void w204_init( uint8_t cs ) {
     w204_puts("Hello World");
     w204_move_cursor(LINE2, 0);
     w204_puts("Hello AVR");
+    
+    /* Fill Test Stream With Data */
+    sprintf(stream_out.data0, "SENSOR00");
+    sprintf(stream_out.data1, "SENSOR01");
+    sprintf(stream_out.data2, "SENSOR02");
+    sprintf(stream_out.data3, "SENSOR03");
+    sprintf(stream_out.data4, "SENSOR04");
+    sprintf(stream_out.data5, "SENSOR05");
 }
 
 static void _w204_hello_word( void ) {   
@@ -256,6 +267,51 @@ void w204_shift_display_right( void ) {
     w204_send_8_bit_instruction( RSRW00, SHIFT_INSTRUCTION | SHIFT_DISPLAY_RIGHT);
 }
 
+void w204_shift_display_up( void ) {
+    if ( CURRENT_STREAM_LINE != 0 ) {
+        CURRENT_STREAM_LINE--;
+    }
+       
+    w204_update( &stream_out );
+}
+
+void w204_shift_display_down( void ) {
+    if ( CURRENT_STREAM_LINE != (MAX_OUTPUT_STREAMS - 1) ) {
+        CURRENT_STREAM_LINE++;
+    }
+    
+    w204_update( &stream_out );
+}
+
 void w204_clear( void ) {
     w204_send_8_bit_instruction( RSRW00, CLEAR_DISPLAY );
+}
+
+void w204_update( stream_out_t* stream ) {
+    
+    if ( CURRENT_STREAM_LINE > MAX_OUTPUT_STREAMS - LINE_COUNT || 
+         CURRENT_STREAM_LINE < 0 ) {
+        return;
+    }
+    
+    char* _stream[MAX_OUTPUT_STREAMS] = {
+        stream->data0,
+        stream->data1,
+        stream->data2,
+        stream->data3,
+        stream->data4,
+        stream->data5
+    };
+    
+    uint8_t _stream_line[LINE_COUNT] = { LINE1, LINE2, LINE3, LINE4 };
+    
+    uint8_t _CURRENT_STREAM_LINE_ = CURRENT_STREAM_LINE;
+    
+    w204_clear();
+     
+    for (uint8_t line = 0; line < LINE_COUNT; line++) {
+        w204_move_cursor( _stream_line[line], 0 );
+        w204_puts( _stream[_CURRENT_STREAM_LINE_] );
+        _CURRENT_STREAM_LINE_++;
+    }
 }

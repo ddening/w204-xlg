@@ -2,10 +2,12 @@
 #define W204_H_
 
 /* HD44780 */
+#define LINE_COUNT  0x04
+#define LINE_LENGTH 0x14
 #define LINE1	0x00
-#define LINE2	LINE3 + 0x20
-#define LINE3	LINE1 + 0x20
-#define	LINE4 	LINE2 + 0x20
+#define LINE2	LINE3 + LINE_LENGTH
+#define LINE3	LINE1 + LINE_LENGTH
+#define	LINE4 	LINE2 + LINE_LENGTH
 #define DDRAM_ADDR 0x80
 
 /* OPCODE */
@@ -45,6 +47,19 @@
 #define SHIFT_DISPLAY_LEFT  0x08
 #define SHIFT_DISPLAY_RIGHT 0x0C
 
+/* Typdef for Display Output */
+#define MAX_CHAR_LENGTH 20
+#define MAX_OUTPUT_STREAMS 6
+
+typedef struct stream_out_t {
+    char data0[MAX_CHAR_LENGTH];
+    char data1[MAX_CHAR_LENGTH];
+    char data2[MAX_CHAR_LENGTH];
+    char data3[MAX_CHAR_LENGTH];
+    char data4[MAX_CHAR_LENGTH];
+    char data5[MAX_CHAR_LENGTH];  
+} stream_out_t;
+
 /* Function Prototypes */
 void w204_init( uint8_t );
 void w204_send_8_bit_instruction( uint8_t, uint8_t );
@@ -57,6 +72,9 @@ void w204_shift_cursor_left( void );
 void w204_shift_cursor_right( void );
 void w204_shift_display_left( void );
 void w204_shift_display_right( void );
+void w204_shift_display_up( void );
+void w204_shift_display_down( void );
 void w204_clear( void );
+void w204_update( stream_out_t* stream );
 
 #endif /* W204_H_ */
