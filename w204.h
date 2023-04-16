@@ -64,6 +64,7 @@ typedef struct stream_out_t {
 void w204_init( uint8_t );
 void w204_set_stream_out( stream_out_t* stream );
 void w204_puts( char* string );
+void w204_put_stream( char* string );
 void w204_update( stream_out_t* stream );
 void w204_clear( void );
 void w204_send_8_bit_instruction( uint8_t, uint8_t );

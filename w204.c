@@ -13,6 +13,7 @@ static device_t* spi_device;
 static void _w204_send_fake_10_bit_instruction( uint8_t, uint8_t );
 static void _w204_send_fake_10_bit_instructions( uint8_t, uint8_t, uint8_t, uint8_t );
 static void _w204_send_fake_10_bit_data( uint8_t, uint8_t, uint8_t );
+static void _w204_send_fake_10_bit_data_stream( uint8_t, uint8_t, char* );
 static void _w204_read_fake_10_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_read_8_bit( uint8_t, uint8_t, uint8_t* );
 static void _w204_check_busy ( void );
@@ -183,7 +184,7 @@ static void _w204_send_fake_10_bit_instructions( uint8_t opcode1, uint8_t instru
     free( data );
 }
 
-static void _w204_send_fake_10_bit_data( uint8_t opcode1, uint8_t data1, uint8_t data2 ) {
+static void _w204_send_fake_10_bit_data( uint8_t opcode, uint8_t data1, uint8_t data2 ) {
     
     spi_error_t err;
     
@@ -193,11 +194,42 @@ static void _w204_send_fake_10_bit_data( uint8_t opcode1, uint8_t data1, uint8_t
         return;
     }
     
-    data[0] = ( opcode1 << 6 ) | ( data1 >> 2 );
+    data[0] = ( opcode << 6 ) | ( data1 >> 2 );
     data[1] = ( data1 << 6 ) | ( data2 >> 2 );
     data[2] = ( data2 << 6 );
     
     payload_t* payload = payload_create_spi( PRIORITY_NORMAL, spi_device, data, 3, NULL );
+    
+    if ( payload == NULL ) {
+        return;
+    }
+    
+    err = spi_write( payload );
+    
+    free( data );
+}
+
+static void _w204_send_fake_10_bit_data_stream( uint8_t opcode, uint8_t stream_len, char* stream) {
+        
+    spi_error_t err;
+    
+    uint8_t* data = (uint8_t*) malloc( sizeof( uint8_t ) * stream_len );
+    
+    if ( data == NULL ) {
+        return;
+    }
+    
+    data[0] = ( opcode << 6 ) | ( stream[0] >> 2 );
+    
+    for ( uint8_t i = 0; i < stream_len - 1; i++ ) {
+        data[i + 1] = ( stream[i] << 6 ) | ( stream[i+1] >> 2 );
+    }
+    
+    // Select stream_len - 2, because we artifically increased the length before by 1.
+    // If we only reduce the value by 1 here, we will access the value '\0' and shift nothing.
+    data[stream_len - 1] = ( stream[stream_len - 2] << 6 );
+    
+    payload_t* payload = payload_create_spi( PRIORITY_NORMAL, spi_device, data, stream_len, NULL );
     
     if ( payload == NULL ) {
         return;
@@ -233,10 +265,17 @@ static void _w204_putc( uint8_t c ) {
     _w204_send_fake_10_bit_instruction( RSRW10, c );
 }
 
+/* Creates a spi job for each character in the string */
 void w204_puts( char* string ) {
     while( *string ) {
         _w204_putc( *string++ );
     }
+}
+
+/* Creates a single spi job for the entire string stream */
+void w204_put_stream( char* stream ) {
+    _w204_check_fake_busy();
+    _w204_send_fake_10_bit_data_stream( RSRW10, strlen(stream), stream );
 }
 
 void w204_move_cursor( uint8_t line, uint8_t offset ) {
