@@ -47,7 +47,7 @@ void w204_init( uint8_t cs ) {
     w204_send_8_bit_instruction( RSRW00, RETURN_HOME );
     w204_send_8_bit_instruction( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );
     
-    //// _w204_hello_word();
+    // _w204_hello_word();
     w204_puts("Hello World");
     w204_move_cursor(LINE2, 0);
     w204_puts("Hello AVR");
@@ -347,6 +347,7 @@ void w204_update( stream_out_t* stream ) {
     for (uint8_t line = 0; line < LINE_COUNT; line++) {
         w204_move_cursor( _stream_line[line], 0 );
         w204_puts( _stream[_CURRENT_STREAM_LINE_] );
+        // w204_put_stream( _stream[_CURRENT_STREAM_LINE_] );
         _CURRENT_STREAM_LINE_++;
     }
 }
