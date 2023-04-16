@@ -32,7 +32,7 @@ static uint8_t char_l = 0x6C ; // 0b01101100
 static uint8_t char_o = 0x6F ; // 0b01101111
 
 static uint8_t CURRENT_STREAM_LINE = 0x00;
-static stream_out_t stream_out;
+static stream_out_t* stream_out = NULL;
 
 void w204_init( uint8_t cs ) {
        
@@ -45,19 +45,11 @@ void w204_init( uint8_t cs ) {
     w204_send_8_bit_instruction( RSRW00, CLEAR_DISPLAY ); 
     w204_send_8_bit_instruction( RSRW00, RETURN_HOME );
     w204_send_8_bit_instruction( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );
-      
-    // _w204_hello_word();
+    
+    //// _w204_hello_word();
     w204_puts("Hello World");
     w204_move_cursor(LINE2, 0);
     w204_puts("Hello AVR");
-    
-    /* Fill Test Stream With Data */
-    sprintf(stream_out.data0, "SENSOR00");
-    sprintf(stream_out.data1, "SENSOR01");
-    sprintf(stream_out.data2, "SENSOR02");
-    sprintf(stream_out.data3, "SENSOR03");
-    sprintf(stream_out.data4, "SENSOR04");
-    sprintf(stream_out.data5, "SENSOR05");
 }
 
 static void _w204_hello_word( void ) {   
@@ -272,15 +264,15 @@ void w204_shift_display_up( void ) {
         CURRENT_STREAM_LINE--;
     }
        
-    w204_update( &stream_out );
+    w204_update( stream_out );
 }
 
 void w204_shift_display_down( void ) {
-    if ( CURRENT_STREAM_LINE != (MAX_OUTPUT_STREAMS - 1) ) {
+    if ( CURRENT_STREAM_LINE != (MAX_OUTPUT_STREAMS - LINE_COUNT ) ) {
         CURRENT_STREAM_LINE++;
     }
     
-    w204_update( &stream_out );
+    w204_update( stream_out );
 }
 
 void w204_clear( void ) {
@@ -288,6 +280,10 @@ void w204_clear( void ) {
 }
 
 void w204_update( stream_out_t* stream ) {
+        
+    if ( stream == NULL ) {
+        return;
+    }
     
     if ( CURRENT_STREAM_LINE > MAX_OUTPUT_STREAMS - LINE_COUNT || 
          CURRENT_STREAM_LINE < 0 ) {
@@ -314,4 +310,8 @@ void w204_update( stream_out_t* stream ) {
         w204_puts( _stream[_CURRENT_STREAM_LINE_] );
         _CURRENT_STREAM_LINE_++;
     }
+}
+
+void w204_set_stream_out( stream_out_t* stream ) {
+    stream_out = stream;
 }
