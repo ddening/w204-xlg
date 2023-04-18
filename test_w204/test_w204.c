@@ -1,8 +1,5 @@
 #include <avr/io.h>
-#include <avr/wdt.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -34,6 +31,9 @@ int main( void ) {
     
     w204_init( SPI_TEST_PORT );
     w204_set_stream_out( &stream_out );
+    
+    w204_move_cursor(LINE1, 0);
+    w204_puts("Hello AVR");
     
     /* Fill Test Stream With Data */
     sprintf(stream_out.data0, "SENSOR00");

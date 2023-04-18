@@ -1,14 +1,28 @@
+/*************************************************************************
+* Title     : w204.c
+* Author    : Dimitri Dening
+* Created   : 11.04.2023
+* Software  : Microchip Studio V7
+* Hardware  : Atmega2560, EA W204-XLG
+        
+DESCRIPTION:
+    EA W204-XLG Display Driver using the SPI Procotol.
+USAGE:
+    see <w204.h>
+NOTES:
+                       
+*************************************************************************/
+
+/* General libraries */
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+/* User defined libraries */
 #include "w204.h"
 #include "spi.h"
-#include "uart.h"
-
-static device_t* spi_device;
 
 static void _w204_send_fake_10_bit_instruction( uint8_t, uint8_t );
 static void _w204_send_fake_10_bit_instructions( uint8_t, uint8_t, uint8_t, uint8_t );
@@ -21,19 +35,14 @@ static void _w204_check_fake_busy ( void );
 static void _w204_putc( uint8_t c );
 static void _w204_hello_word( void );
 
-// Callback Functions
 volatile uint8_t READING;
 void callback_read_finished( void ) {
     READING = 0;
 }
 
-static uint8_t char_h = 0x48 ; // 0b01001000
-static uint8_t char_e = 0x65 ; // 0b01100101
-static uint8_t char_l = 0x6C ; // 0b01101100
-static uint8_t char_o = 0x6F ; // 0b01101111
-
-static uint8_t CURRENT_STREAM_LINE = 0x00;
+static device_t* spi_device;
 static stream_out_t* stream_out = NULL;
+static uint8_t CURRENT_STREAM_LINE = 0x00;
 
 void w204_init( uint8_t cs ) {
        
@@ -45,28 +54,10 @@ void w204_init( uint8_t cs ) {
     w204_send_8_bit_instruction( RSRW00, CHARACTER_MODE_INTERNAL_PWR );
     w204_send_8_bit_instruction( RSRW00, CLEAR_DISPLAY ); 
     w204_send_8_bit_instruction( RSRW00, RETURN_HOME );
-    w204_send_8_bit_instruction( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );
-    
-    // _w204_hello_word();
-    w204_puts("Hello World");
-    w204_move_cursor(LINE2, 0);
-    w204_puts("Hello AVR");
+    w204_send_8_bit_instruction( RSRW00, DISPLAY_ON | CURSOR_ON | BLINK_ON );  
 }
 
-static void _w204_hello_word( void ) {   
-    w204_send_8_bit_data( RSRW10, char_h );
-    w204_send_8_bit_data( RSRW10, char_e );
-    w204_send_8_bit_data( RSRW10, char_l );
-    w204_send_8_bit_data( RSRW10, char_l );
-    w204_send_8_bit_data( RSRW10, char_o );
-}
-
-/* Check BUSY FLAG (BF) RESPONSE  
-If the response equals 1 the process is still active and we have to do another read request.      
-Response format (10 bit): 0 1 | BF AC AC AC AC AC AC AC
- -> First 8 bit looks like this: 0 1 BF AC AC AC AC AC
- -> We have to check the third bit from the left
-*/
+// TODO: Analyze real response signal from device. Use check_fake_busy() meanwhile.
 static void _w204_check_busy ( void ) {
     
     uint8_t BUSY = 1;
@@ -84,8 +75,6 @@ static void _w204_check_busy ( void ) {
         _w204_read_8_bit( RSRW01, 0x80, container );
     
         while ( READING );
-           
-        uart_put( "%i, %i", container[0], container[1] );
         
         if ( container[0] & ( 1 << 5 ) ) {
             BUSY = 1;
@@ -342,12 +331,11 @@ void w204_update( stream_out_t* stream ) {
     
     uint8_t _CURRENT_STREAM_LINE_ = CURRENT_STREAM_LINE;
     
-    w204_clear();
+    // w204_clear(); // -> Doesn't work with w204_put_stream yet. Produces wrong line output instead of resetting to addr. 0
      
     for (uint8_t line = 0; line < LINE_COUNT; line++) {
         w204_move_cursor( _stream_line[line], 0 );
-        w204_puts( _stream[_CURRENT_STREAM_LINE_] );
-        // w204_put_stream( _stream[_CURRENT_STREAM_LINE_] );
+        w204_put_stream( _stream[_CURRENT_STREAM_LINE_] );
         _CURRENT_STREAM_LINE_++;
     }
 }
