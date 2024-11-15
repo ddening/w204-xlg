@@ -8,4 +8,4 @@ Alternatively you can replace the SPI driver with your own. This project is stil
 
 ### Dependencies
 - SPI driver ![here](https://github.com/ddening/spi)
-- Additonal libraries/modules that might be needed can be found in ![libAVR]([https://github.com/ddening/spi](https://github.com/ddening/libAVR))
+- Additonal libraries/modules that might be needed can be found in ![libAVR](https://github.com/ddening/libAVR)
