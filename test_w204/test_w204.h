@@ -13,4 +13,6 @@
 #  endif
 #endif
 
+void test_w204(void);
+
 #endif /* TEST_W204_H_ */
